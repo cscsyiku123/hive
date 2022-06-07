@@ -10363,6 +10363,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
          */
         // 1. Generate Resolved Parse tree from syntax tree
         LOG.info("Starting Semantic Analysis");
+        //todo_c 在此处更改位置别名过程的位置
         //change the location of position alias process here
         processPositionAlias(ast);
         if(!genResolvedParseTree(ast, plannerCtx)) {
@@ -10375,7 +10376,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
          *  Hive 最终生成的 MapReduce 任务，Map 阶段和 Reduce 阶段均由 OperatorTree 组成。
          *  逻辑操作符，就是在 Map 阶段或者 Reduce 阶段完成单一特定的操作。
          */
-        // 2. Gen OP Tree from resolved Parse Tree
+        // 2. TODO_C Gen OP Tree from resolved Parse Tree
         Operator sinkOp = genOPTree(ast, plannerCtx);
 
         if(!unparseTranslator.isEnabled() && tableMask.isEnabled()) {

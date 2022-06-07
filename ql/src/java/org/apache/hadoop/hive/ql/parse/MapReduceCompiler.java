@@ -248,6 +248,7 @@ public class MapReduceCompiler extends TaskCompiler {
 
     @Override
     protected void optimizeTaskPlan(List<Task<? extends Serializable>> rootTasks, ParseContext pCtx, Context ctx) throws SemanticException {
+        //todo_c reduce sink 没有任何孩子——当遍历完node和operator，计划已经分解成多个任务。
         // reduce sink does not have any kids - since the plan by now has been
         // broken up into multiple
         // tasks, iterate over all tasks.

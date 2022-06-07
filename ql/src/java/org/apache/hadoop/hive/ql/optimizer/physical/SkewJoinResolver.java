@@ -72,7 +72,7 @@ public class SkewJoinResolver implements PhysicalPlanResolver {
     public Object dispatch(Node nd, Stack<Node> stack, Object... nodeOutputs)
         throws SemanticException {
       Task<? extends Serializable> task = (Task<? extends Serializable>) nd;
-
+      //todo_c
       if (!task.isMapRedTask() || task instanceof ConditionalTask
           || ((MapredWork) task.getWork()).getReduceWork() == null) {
         return null;
@@ -85,13 +85,13 @@ public class SkewJoinResolver implements PhysicalPlanResolver {
       opRules.put(new RuleRegExp("R1",
         CommonJoinOperator.getOperatorName() + "%"),
         SkewJoinProcFactory.getJoinProc());
-
+      //todo_c 调度程序触发与最接近的匹配规则对应的处理器并传递上下文
       // The dispatcher fires the processor corresponding to the closest
       // matching rule and passes the context along
       Dispatcher disp = new DefaultRuleDispatcher(SkewJoinProcFactory
           .getDefaultProc(), opRules, skewJoinProcContext);
       GraphWalker ogw = new DefaultGraphWalker(disp);
-
+      //todo_c 迭代reducer运算符树
       // iterator the reducer operator tree
       ArrayList<Node> topNodes = new ArrayList<Node>();
       if (((MapredWork)task.getWork()).getReduceWork() != null) {

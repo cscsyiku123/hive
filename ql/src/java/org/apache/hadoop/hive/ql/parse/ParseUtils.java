@@ -85,7 +85,7 @@ public final class ParseUtils {
      * Parses the Hive query.
      */
     public static ASTNode parse(String command, Context ctx, String viewFullyQualifiedName) throws ParseException {
-
+        //todo_c viewFullyQualifiedName=null
         // TODO_MA 注释： ParseDriver 对 command 进行词法分析和语法解析（统称为语法分析），返回一个抽象语法树 AST
         ParseDriver pd = new ParseDriver();
         ASTNode tree = pd.parse(command, ctx, viewFullyQualifiedName);

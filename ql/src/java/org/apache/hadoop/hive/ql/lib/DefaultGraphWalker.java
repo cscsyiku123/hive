@@ -155,7 +155,7 @@ public class DefaultGraphWalker implements GraphWalker {
     // While there are still nodes to dispatch...
     while (!opStack.empty()) {
       Node node = opStack.peek();
-
+      //todo_c 叶子节点或者
       if (node.getChildren() == null ||
               getDispatchedList().containsAll(node.getChildren())) {
         // Dispatch current node

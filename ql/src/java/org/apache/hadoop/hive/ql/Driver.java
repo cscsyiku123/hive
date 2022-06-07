@@ -380,6 +380,7 @@ public class Driver implements CommandProcessor {
      *  3、最后将 BaseSemanticAnalyzer 传入 QueryPlan 构造函数来创建 QueryPlan
      */
     public int compile(String command, boolean resetTaskIds, boolean deferClose) {
+        //todo_c resetTaskIds=true deferClose=true
         PerfLogger perfLogger = SessionState.getPerfLogger(true);
         perfLogger.PerfLogBegin(CLASS_NAME, PerfLogger.DRIVER_RUN);
         perfLogger.PerfLogBegin(CLASS_NAME, PerfLogger.COMPILE);
@@ -389,6 +390,7 @@ public class Driver implements CommandProcessor {
         } finally {
             lDrvState.stateLock.unlock();
         }
+        //todo_c 变量替换
         command = new VariableSubstitution(new HiveVariableSource() {
             @Override
             public Map<String, String> getHiveVariable() {
@@ -397,6 +399,7 @@ public class Driver implements CommandProcessor {
         }).substitute(conf, command);
         String queryStr = command;
         try {
+            //todo_c 应编辑命令以避免记录敏感数据
             // command should be redacted to avoid to logging sensitive data
             queryStr = HookUtils.redactLogString(conf, command);
         } catch(Exception e) {
@@ -1288,6 +1291,7 @@ public class Driver implements CommandProcessor {
      */
     private int compileInternal(String command, boolean deferClose) {
         int ret;
+        //todo_c deferClose=true
 
         Metrics metrics = MetricsFactory.getInstance();
         if(metrics != null) {
@@ -1405,6 +1409,7 @@ public class Driver implements CommandProcessor {
      *  2、执行 ret = execute(true);
      */
     private CommandProcessorResponse runInternal(String command, boolean alreadyCompiled) throws CommandNeedRetryException {
+        //TODO_C alreadyCompiled=FALSE
         errorMessage = null;
         SQLState = null;
         downstreamError = null;
@@ -1424,12 +1429,13 @@ public class Driver implements CommandProcessor {
         } finally {
             lDrvState.stateLock.unlock();
         }
-
+        //todo_c 一个标志，通过跟踪方法是否被错误返回来帮助在 finally 块中设置正确的驱动程序状态。
         // a flag that helps to set the correct driver state in finally block by tracking if
         // the method has been returned by an error or not.
         boolean isFinishedWithError = true;
         try {
             HiveDriverRunHookContext hookContext = new HiveDriverRunHookContextImpl(conf, alreadyCompiled ? ctx.getCmd() : command);
+            //todo_c 获取所有驱动程序运行挂钩并预先执行它们
             // Get all the driver run hooks and pre-execute them.
             List<HiveDriverRunHook> driverRunHooks;
             try {
