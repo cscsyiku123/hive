@@ -527,6 +527,7 @@ public class Driver implements CommandProcessor {
             } else {
                 sem.analyze(tree, ctx);
             }
+            //todo_c 记录我们看到的任何符合 ACID 的 FileSinkOperators，以便我们以后可以将我们的事务 ID 添加到它们
             // Record any ACID compliant FileSinkOperators we saw so we can add our transaction ID to them later.
             acidSinks = sem.getAcidFileSinks();
 
@@ -615,6 +616,7 @@ public class Driver implements CommandProcessor {
             downstreamError = e;
             console.printError(errorMessage, "\n" + org.apache.hadoop.util.StringUtils.stringifyException(e));
             return error.getErrorCode();//todo: this is bad if returned as cmd shell exit
+            //todo_c 因为它超出了 shell 返回值的有效范围
             // since it exceeds valid range of shell return values
         } finally {
             // Trigger post compilation hook. Note that if the compilation fails here then

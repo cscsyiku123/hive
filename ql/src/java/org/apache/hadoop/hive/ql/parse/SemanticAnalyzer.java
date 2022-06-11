@@ -1920,6 +1920,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         Map<String, ObjectPair<String, ReadEntity>> aliasToViewInfo = new HashMap<String, ObjectPair<String, ReadEntity>>();
 
         /**
+         *  todo_c CTE:Common Table Expression,指with子句中的临时结果集。 https://blog.csdn.net/qq_26532177/article/details/122058778
          * used to capture view to SQ conversions. This is used to check for recursive CTE invocations.
          */
         Map<String, String> sqAliasToCTEName = new HashMap<String, String>();
@@ -10182,6 +10183,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         // 2. analyze create table command
         // TODO_MA 22222 注释: 处理 create table 命令
         if(ast.getToken().getType() == HiveParser.TOK_CREATETABLE) {
+            // todo_c 如果不是ctas，返回(CREATE table as )
             // if it is not CTAS, we don't need to go further and just return
             if((child = analyzeCreateTable(ast, qb, plannerCtx)) == null) {
                 return false;

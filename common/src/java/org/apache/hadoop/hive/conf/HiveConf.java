@@ -1232,6 +1232,7 @@ public class HiveConf extends Configuration {
                 ".optimize.skewjoin " + "will be a no-op."),
         
         // CTE
+        //todo_c 如果对 CTE 子句的引用数量超过此阈值，Hive 将在执行主查询块之前将其物化。 -1 将禁用此功能。
         HIVE_CTE_MATERIALIZE_THRESHOLD("hive.optimize.cte.materialize.threshold", -1,
                 "If the number of references to a CTE clause exceeds this " + "threshold, Hive will materialize it\n" + "before executing the main query " + "block. -1 will disable this feature."),
         

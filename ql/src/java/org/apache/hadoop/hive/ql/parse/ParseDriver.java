@@ -44,6 +44,12 @@ public class ParseDriver {
     /**
      * ANTLRNoCaseStringStream.
      */
+    //todo_c 此类为 antlr 的词法分析部分提供和实现不区分大小写的标记检查器。
+    // 通过在检查词法规则时将标记流转换为大写，该类确保词法规则只需将标记与大写字母匹配，
+    // 而不是大写和小写字符的组合。这纯粹用于匹配词法规则。实际的标记文本以与用户输入相同的方式存储，
+    // 而无需实际将其转换为大写。令牌值由超类 ANTLRStringStream 的 consume() 函数生成。
+    // LA() 函数是前瞻函数，纯粹用于匹配词法规则。这也意味着语法将只接受大写的标记，
+    // 以防它从其他工具（如 antlrworks）运行，这些工具没有 ANTLRNoCaseStringStream 实现。
     //This class provides and implementation for a case insensitive token checker
     //for the lexical analysis part of antlr. By converting the token stream into
     //upper case at the time when lexical rules are checked, this class ensures that the
@@ -272,7 +278,7 @@ public class ParseDriver {
         return tree;
     }
 
-    /*
+    /* todo_c 将字符串解析为查询提示
      * Parse a string as a query hint.
      */
     public ASTNode parseHint(String command) throws ParseException {
