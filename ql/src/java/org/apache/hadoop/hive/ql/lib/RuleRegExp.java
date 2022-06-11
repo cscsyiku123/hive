@@ -98,7 +98,7 @@ public class RuleRegExp implements Rule {
    **/
   public RuleRegExp(String ruleName, String regExp) {
     this.ruleName = ruleName;
-
+    //是否有通配符
     if (patternHasWildCardChar(regExp)) {
       if (patternHasOnlyWildCardChar(regExp, '|')) {
           this.patternWithWildCardChar = null;
@@ -116,7 +116,8 @@ public class RuleRegExp implements Rule {
     }
   }
 
-  /**
+  /** todo_c 当匹配的模式中没有通配符时，此函数返回指定堆栈的规则成本。
+   *        该函数期望 patternWithoutWildCardChar 不为空
    * This function returns the cost of the rule for the specified stack when the pattern
    * matched for has no wildcard character in it. The function expects patternWithoutWildCardChar
    * to be not null.
@@ -244,7 +245,7 @@ public class RuleRegExp implements Rule {
     return patternWithoutWildCardChar == null && patternWithWildCardChar != null && this.patternORWildChar == null;
   }
 
-  /**
+  /** todo_c 如果规则模式有效并且其中包含通配符，则返回 true
    * Returns true if the rule pattern is valid and has wild character in it.
    */
   boolean rulePatternIsValidWithoutWildCardChar() {
@@ -269,12 +270,15 @@ public class RuleRegExp implements Rule {
    */
   @Override
   public int cost(Stack<Node> stack) throws SemanticException {
+    //todo_c 规则模式在没有通配符的情况下有效
     if (rulePatternIsValidWithoutWildCardChar()) {
       return costPatternWithoutWildCardChar(stack);
     }
+    //todo_c 规则模式对通配符有效
     if (rulePatternIsValidWithWildCardChar()) {
       return costPatternWithWildCardChar(stack);
     }
+    //todo_c 规则模式对 OR 通配符有效
     if (rulePatternIsValidWithORWildCardChar()) {
       return costPatternWithORWildCardChar(stack);
     }

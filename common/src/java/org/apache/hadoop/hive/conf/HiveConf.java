@@ -893,11 +893,15 @@ public class HiveConf extends Configuration {
                 "The max memory to be used by map-side group " + "aggregation hash table.\n" + "If the memory usage is higher than this number, force to " + "flush data"),
         HIVEMAPAGGRHASHMINREDUCTION("hive.map.aggr.hash.min.reduction", (float) 0.5, "Hash aggregation will be turned off if the ratio between " +
                 "hash" + "  table size and input rows is bigger than this number. \n" + "Set to 1 to make sure hash aggregation is never turned off."),
+        //todo_c 是否优化multi group by query生成单个MRjob plan。如果multi group by query有common group by keys，则优化生成单个MR job。
         HIVEMULTIGROUPBYSINGLEREDUCER("hive.multigroupby.singlereducer", true,
                 "Whether to optimize multi group by query to generate single M/R  " + "job plan. If the multi group by query has \n" + "common group by " + "keys, it will be optimized to generate single M/R job."),
+        //todo_c 如果表的bucketingsorting属性与分组键完全匹配，
+        // 是否执行在映射器中使用BucketizedHiveInputFormat进行分组。唯一的缺点是是它限制了数量
         HIVE_MAP_GROUPBY_SORT("hive.map.groupby.sorted", true,
                 "If the bucketing/sorting properties of the table exactly match the grouping key, " + "whether to perform \n" + "the group by in the " +
                         "mapper by using BucketizedHiveInputFormat. The only downside to this\n" + "is that it " + "limits the number of mappers to the number of" + " files."),
+        //todo_c 是否启用在 Group By 中使用 Column 位置 别名
         HIVE_GROUPBY_POSITION_ALIAS("hive.groupby.position.alias", false, "Whether to enable using Column Position Alias in Group By"),
         HIVE_ORDERBY_POSITION_ALIAS("hive.orderby.position.alias", true, "Whether to enable using Column Position Alias in Order By"),
         @Deprecated HIVE_GROUPBY_ORDERBY_POSITION_ALIAS("hive.groupby.orderby.position.alias", false, "Whether to enable using Column Position " +
@@ -1183,15 +1187,17 @@ public class HiveConf extends Configuration {
                 "default." + " It works correctly for normal tables."),
         HIVENULLSCANOPTIMIZE("hive.optimize.null.scan", true, "Dont scan relations which are guaranteed to not generate any rows"),
         HIVEOPTPPD_STORAGE("hive.optimize.ppd.storage", true, "Whether to push predicates down to storage handlers"),
+        //todo_c 是否通过分桶分区表启用分桶分组。
         HIVEOPTGROUPBY("hive.optimize.groupby", true, "Whether to enable the bucketed group by from bucketed partitions/tables."),
         HIVEOPTBUCKETMAPJOIN("hive.optimize.bucketmapjoin", false, "Whether to try bucket mapjoin"),
         HIVEOPTSORTMERGEBUCKETMAPJOIN("hive.optimize.bucketmapjoin.sortedmerge", false, "Whether to try sorted bucket merge map join"),
+        //todo_c 如果 cluster by相同键值，则去掉这个多余的job
         HIVEOPTREDUCEDEDUPLICATION("hive.optimize.reducededuplication", true,
                 "Remove extra map-reduce jobs if the data is already clustered by " + "the" + " same key which needs to be used again. \n" + "This should " +
                         "always be set to true. Since it is a new feature, it has been made " + "configurable."),
         HIVEOPTREDUCEDEDUPLICATIONMINREDUCER("hive.optimize.reducededuplication.min.reducer", 4,
                 "Reduce deduplication merges two RSs by moving " + "key/parts/reducer-num of the child RS to parent RS. \n" + "That means if reducer-num " + "of the child RS is fixed (order by or forced " + "bucketing) and small, it can make very slow, single MR.\n" + "The optimization will be" + " automatically disabled if number of reducers " + "would" + " be less than specified value."),
-        
+        //todo_c 启用动态分区后，列将全局排序。这样我们可以为每个分区值只保留一个记录写入器在reducer中，从而减少内存对reducer的压力
         HIVEOPTSORTDYNAMICPARTITION("hive.optimize.sort.dynamic.partition", false, "When enabled dynamic partitioning column will be globally " +
                 "sorted.\n" + "This way we can keep only one record writer open for each partition value\n" + "in the reducer thereby reducing the memory " + "pressure on reducers."),
         
@@ -1218,7 +1224,17 @@ public class HiveConf extends Configuration {
         
         HIVE_OPTIMIZE_REDUCE_WITH_STATS("hive.optimize.filter.stats.reduction", false, "Whether to simplify comparison\n" + "expressions in filter "
                 + "operators using column stats"),
-        
+        //todo_c 是否为连接中的“+”表创建单独的倾斜键计划。
+        // 这是基于存储在元数据中的倾斜键。在编译时，计划被打破
+        // 成不同的连接：一个用于倾斜的键，另一个用于剩余的键。然后，
+        // 对上面生成的 2 个连接执行并集。因此，除非在两个连接表中存在相同的倾斜键，
+        // 否则倾斜键的连接将是执行作为映射端连接。这个参数和hive.optimize.skewjoin的主要区别在于这个
+        // 参数使用存储在metastore中的skew信息在编译时自己优化计划。
+        // 如果元数据中没有skew信息，这个参数不会有任何影响。
+        // hive.optimize.skewjoin.compiletime和hive.optimize.skewjoin都应该be设置为 true。
+        // 理想情况下，hive.optimize.skewjoin 应该重命名为 hive.optimize.skewjoin.runtime，但不这样做
+        // so for 向后兼容。如果倾斜信息正确存储在元数据中，hive.optimize.skewjoin.compiletime
+        // 将改变查询计划照顾它，并且 hive.optimize.skewjoin将是空操作
         HIVE_OPTIMIZE_SKEWJOIN_COMPILETIME("hive.optimize.skewjoin.compiletime", false, "Whether to create a separate plan for skewed keys for the "
                 + "tables in the join.\n" + "This is based on the skewed keys stored in the metadata. At compile time, the plan is broken\n" + "into " +
                 "different joins: one for the skewed keys, and the other for the remaining keys. And then,\n" + "a union is performed for the 2 joins " +
@@ -1960,7 +1976,7 @@ public class HiveConf extends Configuration {
                 "reducers being used in the\n" + "               final map reduce job, e.g. " + "if a job was originally " + "going to take 257 " +
                 "reducers,\n" + "               it will now take 512 reducers, similarly if the max " + "number of reducers is 511,\n" + "        " +
                 "       and a job was going to use this many, it will now use 256 reducers."),
-        
+        //todo_c 启用列表分桶优化器。默认值为 false，因此我们禁用它默认情况下。
         HIVEOPTLISTBUCKETING("hive.optimize.listbucketing", false,
                 "Enable list bucketing optimizer. Default value is false so that we disable it " + "by default."),
         
@@ -2373,7 +2389,9 @@ public class HiveConf extends Configuration {
                 "data" + " size in dynamic pruning."),
         SPARK_USE_GROUPBY_SHUFFLE("hive.spark.use.groupby.shuffle", true, "Spark groupByKey transformation has better performance but uses " +
                 "unbounded memory." + "Turn this off when there is a memory issue."),
+        //todo_c 重新排序表的join顺序在 单个表的 多路join里（ 即 选择流表）
         NWAYJOINREORDER("hive.reorder.nway.joins", true, "Runs reordering of tables within single n-way join (i.e.: picks streamtable)"),
+        //todo_c 合并多路join
         HIVE_MERGE_NWAY_JOINS("hive.merge.nway.joins", true, "Merge adjacent joins into a single n-way join"),
         HIVE_LOG_N_RECORDS("hive.log.every.n.records", 0L, new RangeValidator(0L, null),
                 "If value is greater than 0 logs in fixed intervals of " + "size n rather than exponentially."),

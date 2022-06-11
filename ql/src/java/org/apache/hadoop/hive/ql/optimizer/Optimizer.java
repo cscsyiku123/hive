@@ -67,11 +67,11 @@ public class Optimizer {
         boolean bucketMapJoinOptimizer = false;
 
         transformations = new ArrayList<Transform>();
-
+        //todo_c 如果我们将 Calcite 运算符转换为 Hive 运算符，则添加所需的额外后处理转换
         // Add the additional postprocessing transformations needed if
         // we are translating Calcite operators into Hive operators.
         transformations.add(new HiveOpConverterPostProc());
-
+        //todo_c 添加计算血缘信息的转换
         // Add the transformation that computes the lineage information.
         Set<String> postExecHooks = Sets.newHashSet(Splitter.on(",").trimResults().omitEmptyStrings()
                 .split(Strings.nullToEmpty(HiveConf.getVar(hiveConf, HiveConf.ConfVars.POSTEXECHOOKS))));
@@ -79,13 +79,14 @@ public class Optimizer {
                 .contains("org.apache.hadoop.hive.ql.hooks.LineageLogger") || postExecHooks.contains("org.apache.atlas.hive.hook.HiveHook")) {
             transformations.add(new Generator());
         }
-
+        //todo_c 尝试先将 Filter 中的 OR 谓词转换为更简单的 IN 子句
         // Try to transform OR predicates in Filter into simpler IN clauses first
         if(HiveConf.getBoolVar(hiveConf, HiveConf.ConfVars.HIVEPOINTLOOKUPOPTIMIZER) && !pctx.getContext().isCboSucceeded()) {
+            //todo_c 31个or才转换为in
             final int min = HiveConf.getIntVar(hiveConf, HiveConf.ConfVars.HIVEPOINTLOOKUPOPTIMIZERMIN);
             transformations.add(new PointLookupOptimizer(min));
         }
-
+        //todo_c 从in中提取分区列
         if(HiveConf.getBoolVar(hiveConf, HiveConf.ConfVars.HIVEPARTITIONCOLUMNSEPARATOR)) {
             transformations.add(new PartitionColumnsSeparator());
         }
@@ -105,9 +106,9 @@ public class Optimizer {
             transformations.add(new SimplePredicatePushDown());
             transformations.add(new RedundantDynamicPruningConditionsRemoval());
         }
-
+        //todo_c 我们运行了两次常量传播，因为在谓词下推之后，过滤器表达式被组合并且可能有资格减少（比如不是空过滤器
         if(HiveConf.getBoolVar(hiveConf, HiveConf.ConfVars.HIVEOPTCONSTANTPROPAGATION) && !pctx.getContext().isCboSucceeded()) {
-            // We run constant propagation twice because after predicate pushdown, filter expressions
+            // We run constant propagat                                                       ion twice because after predicate pushdown, filter expressions
             // are combined and may become eligible for reduction (like is not null filter).
             transformations.add(new ConstantPropagate());
         }
@@ -205,6 +206,7 @@ public class Optimizer {
         if(HiveConf.getBoolVar(hiveConf, HiveConf.ConfVars.HIVELIMITOPTENABLE)) {
             transformations.add(new GlobalLimitOptimizer());
         }
+        //todo_c 相关优化， 如对相同的keyj进行shuffle就可以合并到一块。合并那些被多少mapreduce 使用的输入表。
         if(HiveConf.getBoolVar(hiveConf, HiveConf.ConfVars.HIVEOPTCORRELATION) && !HiveConf
                 .getBoolVar(hiveConf, HiveConf.ConfVars.HIVEGROUPBYSKEW) && !HiveConf
                 .getBoolVar(hiveConf, HiveConf.ConfVars.HIVE_OPTIMIZE_SKEWJOIN_COMPILETIME) && !isTezExecEngine) {

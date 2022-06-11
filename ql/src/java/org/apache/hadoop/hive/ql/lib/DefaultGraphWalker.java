@@ -114,6 +114,7 @@ public class DefaultGraphWalker implements GraphWalker {
    */
   public void startWalking(Collection<Node> startNodes,
       HashMap<Node, Object> nodeOutput) throws SemanticException {
+    // todo_c nodeOutput =Null
     toWalk.addAll(startNodes);
     while (toWalk.size() > 0) {
       Node nd = toWalk.remove(0);
@@ -155,9 +156,10 @@ public class DefaultGraphWalker implements GraphWalker {
     // While there are still nodes to dispatch...
     while (!opStack.empty()) {
       Node node = opStack.peek();
-      //todo_c 叶子节点或者
+      //todo_c 叶子节点或者 getDispatchedList 包含他所有的孩子节点
       if (node.getChildren() == null ||
               getDispatchedList().containsAll(node.getChildren())) {
+        //如果是 getDispatchedList 不包含他所有的孩子节点，则dispatch
         // Dispatch current node
         if (!getDispatchedList().contains(node)) {
           dispatch(node, opStack);
@@ -166,7 +168,7 @@ public class DefaultGraphWalker implements GraphWalker {
         opStack.pop();
         continue;
       }
-
+      // todo_c 加一个孩子，就是dfs 深度遍历
       // Add a single child and restart the loop
       for (Node childNode : node.getChildren()) {
         if (!getDispatchedList().contains(childNode)) {
