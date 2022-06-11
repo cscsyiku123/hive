@@ -103,7 +103,7 @@ public abstract class TaskCompiler {
 
     /*************************************************
      * TODO_MA 马中华 https://blog.csdn.net/zhongqi2513
-     *  注释： 执行编译： 逻辑执行计划，变成物理执行计划
+     *  todo_c 注释： 执行编译： 逻辑执行计划，变成物理执行计划
      */
     @SuppressWarnings({"nls", "unchecked"})
     public void compile(final ParseContext pCtx, final List<Task<? extends Serializable>> rootTasks, final HashSet<ReadEntity> inputs,
@@ -125,6 +125,7 @@ public abstract class TaskCompiler {
             }
             pCtx.getFetchTask().getWork().setHiveServerQuery(SessionState.get().isHiveServerQuery());
             TableDesc resultTab = pCtx.getFetchTask().getTblDesc();
+            //todo_c 如果序列化器是 ThriftJDBCBinarySerDe，那么它需要使用 NoOpFetchFormatter。但如果不是，则应使用 ThriftFormatter 或 DefaultFetchFormatter
             // If the serializer is ThriftJDBCBinarySerDe, then it requires that NoOpFetchFormatter be used. But
             // when it isn't,
             // then either the ThriftFormatter or the DefaultFetchFormatter should be used.
@@ -146,13 +147,16 @@ public abstract class TaskCompiler {
          * TODO_MA 马中华 https://blog.csdn.net/zhongqi2513
          *  注释： 111111 再次优化 逻辑执行计划
          */
+        //todo_c 只有spark和tez 执行
         optimizeOperatorPlan(pCtx, inputs, outputs);
 
-        /*
+        /* todo_c 如果是select，则 用fetch task替代 move task
+            *   如果select来自分析表 列重写，就不要创建fetch task。而是创建 稍后创建一个列状态 任务。
          * In case of a select, use a fetch task instead of a move task.
          * If the select is from analyze table column rewrite, don't create a fetch task. Instead create
          * a column stats task later.
          */
+        //todo_c isCStats=false
         if(pCtx.getQueryProperties().isQuery() && !isCStats) {
             if((!loadTableWork.isEmpty()) || (loadFileWork.size() != 1)) {
                 throw new SemanticException(ErrorMsg.INVALID_LOAD_TABLE_FILE_WORK.getMsg());
@@ -218,6 +222,7 @@ public abstract class TaskCompiler {
             for(LoadTableDesc ltd : loadTableWork) {
                 Task<MoveWork> tsk = TaskFactory.get(new MoveWork(null, null, ltd, null, false), conf);
                 mvTask.add(tsk);
+                //todo_c 检查我们是否正在过时任何索引并在需要时自动更新它们
                 // Check to see if we are stale'ing any indexes and auto-update them if we want
                 if(HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVEINDEXAUTOUPDATE)) {
                     IndexUpdater indexUpdater = new IndexUpdater(loadTableWork, inputs, conf);
@@ -280,12 +285,12 @@ public abstract class TaskCompiler {
          *  把 OperatorTree 变成 TaskTree
          */
         generateTaskTree(rootTasks, pCtx, mvTask, inputs, outputs);
-
+        //todo_c 设置reducer key的反序列化
         // For each task, set the key descriptor for the reducer
         for(Task<? extends Serializable> rootTask : rootTasks) {
             GenMapRedUtils.setKeyAndValueDescForTaskTree(rootTask);
         }
-
+        //todo_c
         // If a task contains an operator which instructs bucketizedhiveinputformat
         // to be used, please do so
         for(Task<? extends Serializable> rootTask : rootTasks) {
@@ -300,7 +305,7 @@ public abstract class TaskCompiler {
          */
         optimizeTaskPlan(rootTasks, pCtx, ctx);
 
-        /*
+        /* todo_c analyze任务
          * If the query was the result of analyze table column compute statistics rewrite, create
          * a column stats task instead of a fetch task to persist stats to the metastore.
          */
@@ -335,7 +340,7 @@ public abstract class TaskCompiler {
          *  2、分布式模式 MR（并行运行模式），最大的并行运行数量是 8
          */
         decideExecMode(rootTasks, ctx, globalLimitCtx);
-
+        //todo_c 创建table任务且 不是 物化view任务
         if(pCtx.getQueryProperties().isCTAS() && !pCtx.getCreateTable().isMaterialization()) {
             // generate a DDL task and make it a dependent task of the leaf
             CreateTableDesc crtTblDesc = pCtx.getCreateTable();
@@ -344,6 +349,7 @@ public abstract class TaskCompiler {
 
             Task<? extends Serializable> crtTblTask = TaskFactory.get(new DDLWork(inputs, outputs, crtTblDesc), conf);
             patchUpAfterCTASorMaterializedView(rootTasks, outputs, crtTblTask);
+            //todo_c 如果是materialized view任务
         } else if(pCtx.getQueryProperties().isMaterializedView()) {
             // generate a DDL task and make it a dependent task of the leaf
             CreateViewDesc viewDesc = pCtx.getCreateViewDesc();

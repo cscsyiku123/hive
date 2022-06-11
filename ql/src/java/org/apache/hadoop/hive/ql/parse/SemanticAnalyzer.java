@@ -389,6 +389,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         unparseTranslator = new UnparseTranslator(conf);
         autogenColAliasPrfxLbl = HiveConf.getVar(conf, HiveConf.ConfVars.HIVE_AUTOGEN_COLUMNALIAS_PREFIX_LABEL);
         autogenColAliasPrfxIncludeFuncName = HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_AUTOGEN_COLUMNALIAS_PREFIX_INCLUDEFUNCNAME);
+        //todo_c 只是new了
         queryProperties = new QueryProperties();
         opToPartToSkewedPruner = new HashMap<TableScanOperator, Map<String, ExprNodeDesc>>();
         aliasToCTEs = new HashMap<String, CTEClause>();
@@ -10540,6 +10541,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
          * TODO_MA 马中华 https://blog.csdn.net/zhongqi2513
          *  注释： 9999999 执行物理优化，并 生成最终物理执行计划  OperatorTree  ====> TaskTree
          */
+        //todo_c 优化物理操作树并转换为目标执行引擎（MR、TEZ..）
         // 9. Optimize Physical op tree & Translate to target execution engine (MR, TEZ..)
         if(!ctx.getExplainLogical()) {
             // 这里的TaskCompiler根据引擎不同可以是MR, Tez, Spark, TaskCompilerFactory的实现

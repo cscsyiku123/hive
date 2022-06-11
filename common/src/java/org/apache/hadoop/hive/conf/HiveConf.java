@@ -927,6 +927,7 @@ public class HiveConf extends Configuration {
         HIVEDEFAULTMANAGEDFILEFORMAT("hive.default.fileformat.managed", "none", new StringSet("none", "TextFile", "SequenceFile", "RCfile", "ORC",
                 "parquet"),
                 "Default file format for CREATE TABLE statement applied to managed tables only. External tables will be \n" + "created with " + "format " + "specified by hive.default.fileformat. Leaving this null will result in using hive.default.fileformat \n" + "for all tables."),
+        ///todo_c 默认查询结果文件存储类型
         HIVEQUERYRESULTFILEFORMAT("hive.query.result.fileformat", "SequenceFile", new StringSet("TextFile", "SequenceFile", "RCfile", "Llap"),
                 "Default" + " file format for storing result of the query."),
         HIVECHECKFILEFORMAT("hive.fileformat.check", true, "Whether to check file format or not when loading data files"),
