@@ -290,7 +290,7 @@ public abstract class TaskCompiler {
         for(Task<? extends Serializable> rootTask : rootTasks) {
             GenMapRedUtils.setKeyAndValueDescForTaskTree(rootTask);
         }
-        //todo_c
+        //todo_c 桶表
         // If a task contains an operator which instructs bucketizedhiveinputformat
         // to be used, please do so
         for(Task<? extends Serializable> rootTask : rootTasks) {

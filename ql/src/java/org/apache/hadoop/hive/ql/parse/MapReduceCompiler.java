@@ -274,7 +274,7 @@ public class MapReduceCompiler extends TaskCompiler {
                 // Must be deterministic order map for consistent q-test output across Java versions
                 new LinkedHashMap<Operator<? extends OperatorDesc>, Task<? extends Serializable>>(), tempParseContext, mvTask, rootTasks,
                 new LinkedHashMap<Operator<? extends OperatorDesc>, GenMapRedCtx>(), inputs, outputs);
-
+        //todo_c dfs 的同时保持operator tree,然后分发ot生成计划
         // create a walker which walks the tree in a DFS manner while maintaining
         // the operator stack.
         // The dispatcher generates the plan from the operator tree

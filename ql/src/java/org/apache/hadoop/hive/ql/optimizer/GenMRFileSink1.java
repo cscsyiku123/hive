@@ -45,7 +45,7 @@ import org.apache.hadoop.hive.ql.plan.FileSinkDesc;
 import org.apache.hadoop.hive.ql.plan.MapredWork;
 import org.apache.hadoop.hive.ql.plan.OperatorDesc;
 
-/**
+/** todo_c  表scan后的reduce sink
  * Processor for the rule - table scan followed by reduce sink.
  */
 public class GenMRFileSink1 implements NodeProcessor {
@@ -69,7 +69,7 @@ public class GenMRFileSink1 implements NodeProcessor {
     GenMRProcContext ctx = (GenMRProcContext) opProcCtx;
     ParseContext parseCtx = ctx.getParseCtx();
     boolean chDir = false;
-    // we should look take the parent of fsOp's task as the current task.
+    //todo_c  我们应该将fsOp的父任务作为当前任务
     FileSinkOperator fsOp = (FileSinkOperator) nd;
     Map<Operator<? extends OperatorDesc>, GenMapRedCtx> mapCurrCtx = ctx
         .getMapCurrCtx();
@@ -82,8 +82,7 @@ public class GenMRFileSink1 implements NodeProcessor {
     boolean isInsertTable = // is INSERT OVERWRITE TABLE
         GenMapRedUtils.isInsertInto(parseCtx, fsOp);
     HiveConf hconf = parseCtx.getConf();
-
-    // Mark this task as a final map reduce task (ignoring the optional merge task)
+    //todo_c 将此任务标记为最终的 map reduce 任务（忽略可选的合并任务）
     ((MapredWork)currTask.getWork()).setFinalMapRed(true);
 
     // If this file sink desc has been processed due to a linked file sink desc,
@@ -94,7 +93,7 @@ public class GenMRFileSink1 implements NodeProcessor {
       processLinkedFileDesc(ctx, childTask);
       return true;
     }
-
+    //todo_c 在union或map join的情况下，文件可能已经被看到。因此，无需再次尝试合并文件。
     // In case of unions or map-joins, it is possible that the file has
     // already been seen.
     // So, no need to attempt to merge the files again.
