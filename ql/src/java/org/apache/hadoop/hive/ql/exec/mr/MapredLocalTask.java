@@ -84,6 +84,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * //todo_c MapredLocalTask 表示 hive 需要执行的任何本地工作（即：客户端工作）。
+ *    例如：这用于在集群上执行 Join 之前在客户端为 Mapjoins 生成哈希表。
+ *    MapRedLocalTask 实际上并不执行正在进行的工作，而是使用 ExecDriver 生成命令。 ExecDriver 最终将驱动处理记录。
  * MapredLocalTask represents any local work (i.e.: client side work) that hive needs to
  * execute. E.g.: This is used for generating Hashtables for Mapjoins on the client
  * before the Join is executed on the cluster.
@@ -227,6 +230,7 @@ public class MapredLocalTask extends Task<MapredLocalWork> implements Serializab
         }
       }
       hadoopOpts = sb.toString();
+      //todo_c 继承环境变量
       // Inherit the environment variables
       String[] env;
       Map<String, String> variables = new HashMap<String, String>(System.getenv());
@@ -239,6 +243,7 @@ public class MapredLocalTask extends Task<MapredLocalWork> implements Serializab
       // int hadoopMem = conf.getIntVar(HiveConf.ConfVars.HIVEHADOOPMAXMEM);
       int hadoopMem = conf.getIntVar(HiveConf.ConfVars.HIVEHADOOPMAXMEM);
       if (hadoopMem == 0) {
+        //todo_c 删除默认子 jvm 使用父内存作为默认值的 env var。子 jvm 将为 hadoop 客户端使用默认内存
         // remove env var that would default child jvm to use parent's memory
         // as default. child jvm would use default memory for a hadoop client
         variables.remove(HADOOP_MEM_KEY);

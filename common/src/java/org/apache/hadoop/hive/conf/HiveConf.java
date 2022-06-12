@@ -457,7 +457,9 @@ public class HiveConf extends Configuration {
         
         HIVE_RESULTSET_USE_UNIQUE_COLUMN_NAMES("hive.resultset.use.unique.column.names", true, "Make column names unique in the result set by " +
                 "qualifying column names with table alias if needed.\n" + "Table alias will be added to column names for queries of type \"select *\" or " + "\n" + "if query explicitly uses table alias \"select r1.x..\"."),
-        
+
+
+        //todo_c Hadoop 配置属性 具有空值的属性将被忽略，并且仅出于为我们提供符号名称以在 Hive 源代码中引用的目的而存在。具有非空值的属性将覆盖底层 Hadoop 配置中设置的任何值。
         // Hadoop Configuration Properties
         // Properties with null values are ignored and exist only for the purpose of giving us
         // a symbolic name to reference in the Hive source code. Properties with non-null
@@ -788,7 +790,8 @@ public class HiveConf extends Configuration {
         
         // hive added files and jars
         HIVEADDEDFILES("hive.added.files.path", "", "This an internal parameter."),
-        HIVEADDEDJARS("hive.added.jars.path", "", "This an internal parameter."),
+
+         HIVEADDEDJARS("hive.added.jars.path", "", "This an internal parameter."),
         HIVEADDEDARCHIVES("hive.added.archives.path", "", "This an internal parameter."),
         
         HIVE_CURRENT_DATABASE("hive.current.database", "", "Database name used by current session. Internal usage only.", true),
@@ -1064,31 +1067,51 @@ public class HiveConf extends Configuration {
         HIVE_LAZYSIMPLE_EXTENDED_BOOLEAN_LITERAL("hive.lazysimple.extended_boolean_literal", false, "LazySimpleSerde uses this property to " +
                 "determine if it treats 'T', 't', 'F', 'f',\n" + "'1', and '0' as extened, legal boolean literal, in addition to 'TRUE' and 'FALSE'.\n" +
                 "The " + "default is false, which means only 'TRUE' and 'FALSE' are treated as legal\n" + "boolean literal."),
-        
+
+        //todo_c 运行检测存储在hdfs 目录，在后续的map REDUCT作业中，
+        //      处理这些密钥。对于所有表，不需要倾斜相同的键，因此后续映射会减少
+        //      作业（对于倾斜的关键点）会快得多，因为它将是一个映射连接
         HIVESKEWJOIN("hive.optimize.skewjoin", false,
                 "Whether to enable skew join optimization. \n" + "The algorithm is as follows: At runtime, " + "detect the keys with a large skew. " +
                         "Instead" + " of\n" + "processing those keys, store them temporarily in an HDFS directory. In a follow-up " + "map-reduce\n" + "job, " +
                         "process those " + "skewed keys. The same key need not be skewed for all the tables, and so,\n" + "the follow-up " + "map" + "-reduce " +
                         "job (for the skewed " + "keys) would be much faster, since it would be a\n" + "map-join."),
+
+        //todo_c 是否开启动态分区hash join优化。
+        // 此设置还取决于启用 hive.auto.convert.join
         HIVEDYNAMICPARTITIONHASHJOIN("hive.optimize.dynamic.partition.hashjoin", false, "Whether to enable dynamically partitioned hash join " +
                 "optimization. \n" + "This setting is also dependent on enabling hive.auto.convert.join"),
+        //todo_c Hive 是否开启了基于  输入文件大小的 common join 转 mapjoin 的优化
         HIVECONVERTJOIN("hive.auto.convert.join", true,
                 "Whether Hive enables the optimization about converting common join into mapjoin based on " + "the input file size"),
+        //todo_c Hive 是否开启根据输入文件大小将common join 转换为 mapjoin 的优化。
+        // 如果此参数打开，并且 n-way join 的 tables partitions 的 n-1 个大小之和小于指定大小，
+        // 则 join直接转成mapjoin（没有条件任务）
         HIVECONVERTJOINNOCONDITIONALTASK("hive.auto.convert.join.noconditionaltask", true, "Whether Hive enables the optimization about converting "
                 + "common join into mapjoin based on the input file size. \n" + "If this parameter is on, and the sum of size for n-1 of the " + "tables" + "/partitions for a n-way join is smaller than the\n" + "specified size, the join is directly converted to a mapjoin (there is no " + "conditional task)."),
-        
+        //todo_c 如果 hive.auto.convert.join.noconditionaltask 关闭，此参数不生效。
+        // 但是，如果它打开，并且 n-way join 的 tables
+        // 分区的 n-1 的大小之和小于此大小，join直接转成mapjoin(没有条件任务)。默认为 10MB
         HIVECONVERTJOINNOCONDITIONALTASKTHRESHOLD("hive.auto.convert.join.noconditionaltask.size", 10000000L, "If hive.auto.convert.join" +
                 ".noconditionaltask is off, this parameter does not take affect. \n" + "However, if it is on, and the sum of size for n-1 of the " +
                 "tables" + "/partitions for a n-way join is smaller than this size, \n" + "the join is directly converted to a mapjoin(there is no " +
                 "conditional" + " task)" + ". The default is 10MB"),
+
+        //todo_c 对于条件联接，如果来自小别名的输入流可以直接应用于联接运算符，而无需过滤或
+        //          投影时，不需要通过映射本地任务在分布式缓存中预暂存别名。目前，这不适用于矢量化或tez执行
         HIVECONVERTJOINUSENONSTAGED("hive.auto.convert.join.use.nonstaged", false,
                 "For conditional joins, if input stream from a small alias can " + "be directly applied to join operator without \n" + "filtering or " +
                         "projection, the alias need not to be pre-staged in distributed cache via" + " mapred local task.\n" + "Currently, this is not working " + "with vectorization or tez execution engine."),
+
+        //todo_c Determine if we get a skew key in join. If we see more than the specified number of rows
+        //       with the same key in join operator, we think the key as a skew join key
         HIVESKEWJOINKEY("hive.skewjoin.key", 100000, "Determine if we get a skew key in join. If we see more than the specified number of rows " +
                 "with" + " the same key in join operator,\n" + "we think the key as a skew join key. "),
+        //todo_c “确定斜联接的后续map join作业中使用的映射任务数。它应与配置单元一起使用 skewjoin.mapjoin.min.split以执行细粒度控制
         HIVESKEWJOINMAPJOINNUMMAPTASK("hive.skewjoin.mapjoin.map.tasks", 10000,
                 "Determine the number of map task used in the follow up map join " + "job for a skew join.\n" + "It should be used together with hive" +
                         ".skewjoin.mapjoin.min.split to perform a fine grained control."),
+        //todo_c 通过指定最小拆分小，确定斜联接的后map链接接作业中最多使用的映射任务数 2^25 =32M
         HIVESKEWJOINMAPJOINMINSPLIT("hive.skewjoin.mapjoin.min.split", 33554432L,
                 "Determine the number of map task at most used in the follow up " + "map join job for a skew join by specifying \n" + "the minimum split " + "size. It should be used together with hive.skewjoin.mapjoin.map.tasks" + " to perform a fine grained control."),
         
@@ -1225,7 +1248,7 @@ public class HiveConf extends Configuration {
         
         HIVE_OPTIMIZE_REDUCE_WITH_STATS("hive.optimize.filter.stats.reduction", false, "Whether to simplify comparison\n" + "expressions in filter "
                 + "operators using column stats"),
-        //todo_c 是否为连接中的“+”表创建单独的倾斜键计划。
+        //todo_c 是否为连接中的表创建单独的倾斜键计划。
         // 这是基于存储在元数据中的倾斜键。在编译时，计划被打破
         // 成不同的连接：一个用于倾斜的键，另一个用于剩余的键。然后，
         // 对上面生成的 2 个连接执行并集。因此，除非在两个连接表中存在相同的倾斜键，
@@ -1236,6 +1259,7 @@ public class HiveConf extends Configuration {
         // 理想情况下，hive.optimize.skewjoin 应该重命名为 hive.optimize.skewjoin.runtime，但不这样做
         // so for 向后兼容。如果倾斜信息正确存储在元数据中，hive.optimize.skewjoin.compiletime
         // 将改变查询计划照顾它，并且 hive.optimize.skewjoin将是空操作
+        //todo_c  依赖元数据对于倾斜key进行判断
         HIVE_OPTIMIZE_SKEWJOIN_COMPILETIME("hive.optimize.skewjoin.compiletime", false, "Whether to create a separate plan for skewed keys for the "
                 + "tables in the join.\n" + "This is based on the skewed keys stored in the metadata. At compile time, the plan is broken\n" + "into " +
                 "different joins: one for the skewed keys, and the other for the remaining keys. And then,\n" + "a union is performed for the 2 joins " +
@@ -3173,7 +3197,8 @@ public class HiveConf extends Configuration {
         if ((this.get("hive.metastore.ds.retry.attempts") != null) || this.get("hive.metastore.ds.retry.interval") != null) {
             l4j.warn("DEPRECATED: hive.metastore.ds.retry.* no longer has any effect.  " + "Use hive.hmshandler.retry.* instead");
         }
-        
+
+        //todo_c 如果正在运行的类是直接加载的（通过 eclipse）而不是通过 jar
         // if the running class was loaded directly (through eclipse) rather than through a
         // jar then this would be needed
         if (hiveJar == null) {

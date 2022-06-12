@@ -214,6 +214,7 @@ public abstract class Task<T extends Serializable> implements Serializable, Node
     }
 
     /**
+    /** todo_c 此方法在每个任务中被覆盖。 TODO 执行应该返回一个 TaskHandle
      * This method is overridden in each Task. TODO execute should return a TaskHandle.
      *
      * @return status of executing the task
@@ -476,6 +477,10 @@ public abstract class Task<T extends Serializable> implements Serializable, Node
     public abstract StageType getType();
 
     /**
+    /**todo_c 订阅发布者的订阅源。为了防止循环，一个任务只能订阅它的祖先。
+     *  Feed 是从一个任务到另一个任务的执行时反馈（类型、值）对的通用形式。
+     *  示例包括动态分区（仅在执行时可用）。 MoveTask 可以将动态分区列表传递给 StatsTask，
+     *  因为在 MoveTask 之后动态分区列表会丢失（MoveTask 将它们移动到与旧分区混合的表的目标目录）。
      * Subscribe the feed of publisher. To prevent cycles, a task can only subscribe to its ancestor.
      * Feed is a generic form of execution-time feedback (type, value) pair from one task to another
      * task. Examples include dynamic partitions (which are only available at execution time). The

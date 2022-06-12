@@ -64,12 +64,14 @@ public class DefaultRuleDispatcher implements Dispatcher {
   public Object dispatch(Node nd, Stack<Node> ndStack, Object... nodeOutputs)
       throws SemanticException {
     //todo_c 从指定的堆栈中查找规则
+
     // find the firing rule
     // find the rule from the stack specified
     Rule rule = null;
     int minCost = Integer.MAX_VALUE;
     for (Rule r : procRules.keySet()) {
       //todo_c 基于cost优化
+
       int cost = r.cost(ndStack);
       if ((cost >= 0) && (cost <= minCost)) {
         minCost = cost;

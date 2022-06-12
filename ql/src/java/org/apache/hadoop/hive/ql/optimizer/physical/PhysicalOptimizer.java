@@ -46,12 +46,15 @@ public class PhysicalOptimizer {
    */
   private void initialize(HiveConf hiveConf) {
     resolvers = new ArrayList<PhysicalPlanResolver>();
+
+    //todo_c skew join,其实也是mapjoin，是将skew join转化为map join
     if (hiveConf.getBoolVar(HiveConf.ConfVars.HIVESKEWJOIN)) {
       resolvers.add(new SkewJoinResolver());
     }
+    //todo_c map join,是根据表大小转化为map join
     if (hiveConf.getBoolVar(HiveConf.ConfVars.HIVECONVERTJOIN)) {
       resolvers.add(new CommonJoinResolver());
-
+      //todo_c join已经自动转化为mapjoin。然而，即使join被自动转换为sort mergejoin，他们也应该尝试使用map join
       // The joins have been automatically converted to map-joins.
       // However, if the joins were converted to sort-merge joins automatically,
       // they should also be tried as map-joins.
@@ -84,6 +87,8 @@ public class PhysicalOptimizer {
     if (hiveConf.getBoolVar(HiveConf.ConfVars.HIVE_CHECK_CROSS_PRODUCT)) {
       resolvers.add(new CrossProductCheck());
     }
+
+    //todo_c 矢量化应该是最后的优化，因为它不会修改计划或任何运算符。它对表达式进行了非常低级别的转换，以在矢量化模式下运行。
 
     // Vectorization should be the last optimization, because it doesn't modify the plan
     // or any operators. It makes a very low level transformation to the expressions to

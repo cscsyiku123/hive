@@ -279,6 +279,7 @@ public class ExecDriver extends Task<MapredWork> implements Serializable, Hadoop
         // TODO_MA 注释：设置 Partitioner 组件
         try {
             String partitioner = HiveConf.getVar(job, ConfVars.HIVEPARTITIONER);
+            //hashpartition
             job.setPartitionerClass(JavaUtils.loadClass(partitioner));
 
         } catch(ClassNotFoundException e) {
@@ -294,6 +295,9 @@ public class ExecDriver extends Task<MapredWork> implements Serializable, Hadoop
         // TODO_MA 注释：设置 InputFormat
         // set input format information if necessary
         setInputAttributes(job);
+                // TODO_MA 注释：设置 InputFormat
+                // set input format information if necessary
+                setInputAttributes(job);
 
         // TODO_MA 注释：设置是否开启 推测执行 机制
         // Turn on speculative execution for reducers

@@ -125,6 +125,7 @@ public class JoinDesc extends AbstractOperatorDesc {
   }
 
   // called by late-MapJoin processor (hive.auto.convert.join=true for example)
+
   public void resetOrder() {
     tagOrder = new Byte[exprs.size()];
     for (int i = 0; i < tagOrder.length; i++) {

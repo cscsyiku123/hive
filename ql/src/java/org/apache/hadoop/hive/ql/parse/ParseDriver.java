@@ -50,6 +50,7 @@ public class ParseDriver {
     // 而无需实际将其转换为大写。令牌值由超类 ANTLRStringStream 的 consume() 函数生成。
     // LA() 函数是前瞻函数，纯粹用于匹配词法规则。这也意味着语法将只接受大写的标记，
     // 以防它从其他工具（如 antlrworks）运行，这些工具没有 ANTLRNoCaseStringStream 实现。
+
     //This class provides and implementation for a case insensitive token checker
     //for the lexical analysis part of antlr. By converting the token stream into
     //upper case at the time when lexical rules are checked, this class ensures that the
@@ -274,11 +275,14 @@ public class ParseDriver {
         ASTNode tree = (ASTNode) r.getTree();
 
         tree.setUnknownTokenBoundaries();
+
+        //todo_c 输出树结构
         System.out.println(tree.dump());
         return tree;
     }
 
     /* todo_c 将字符串解析为查询提示
+
      * Parse a string as a query hint.
      */
     public ASTNode parseHint(String command) throws ParseException {

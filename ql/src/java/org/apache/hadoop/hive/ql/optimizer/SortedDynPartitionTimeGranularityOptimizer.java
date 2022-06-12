@@ -79,6 +79,7 @@ import java.util.Map;
 import java.util.Stack;
 
 /** todo_c 在 FS 之前引入 RS 以按配置指定的时间粒度对数据进行分区。
+
  * Introduces a RS before FS to partition data by configuration specified
  * time granularity.
  */
@@ -88,6 +89,7 @@ public class SortedDynPartitionTimeGranularityOptimizer extends Transform {
   public ParseContext transform(ParseContext pCtx) throws SemanticException {
     //todo_c 创建一个 walker，它以 DFS 方式遍历树，同时维护操作员堆栈。
     // 调度程序从算子树生成计划
+
     // create a walker which walks the tree in a DFS manner while maintaining the
     // operator stack. The dispatcher generates the plan from the operator tree
     Map<Rule, NodeProcessor> opRules = new LinkedHashMap<Rule, NodeProcessor>();

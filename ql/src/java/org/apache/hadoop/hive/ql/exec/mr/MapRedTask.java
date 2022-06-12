@@ -53,6 +53,9 @@ import org.apache.hive.common.util.HiveStringUtils;
 import org.apache.hive.common.util.StreamPrinter;
 
 /**
+/** todo_c
+ *          ExecDriver 的扩展： - 可以选择从单独的 jvm 生成 map-reduce 任务 -
+ *          将对 map-reduce 作业参数进行最后一分钟调整，即：估计reduce的数量，估计作业是否应该在本地运行
  * Extension of ExecDriver:
  * - can optionally spawn a map-reduce task from a separate jvm
  * - will make last minute adjustments to map-reduce job parameters, viz:
@@ -99,9 +102,9 @@ public class MapRedTask extends ExecDriver implements Serializable {
             setNumberOfReducers();
 
             /**
-             * TODO 本地模式
+             * TODO_c 本地模式 hive.exec.mode.local.auto
              */
-            // auto-determine local mode if allowed
+            // auto-determine local mode if allowed  .hive.exec.mode.local.auto
             if (!ctx.isLocalOnlyExecutionMode() && conf.getBoolVar(HiveConf.ConfVars.LOCALMODEAUTO)) {
 
                 if (inputSummary == null) {
@@ -141,6 +144,7 @@ public class MapRedTask extends ExecDriver implements Serializable {
                 }
             }
 
+            //todo_c hive.exec.submitviachild
             runningViaChild = conf.getBoolVar(HiveConf.ConfVars.SUBMITVIACHILD);
 
             // 如果不是通过 子JVM 运行
@@ -156,6 +160,7 @@ public class MapRedTask extends ExecDriver implements Serializable {
 
                 /**
                  * TODO 最终还是执行 ExecDriver 中的 execute 方法
+
                  */
                 // we are not running this mapred task via child jvm so directly invoke ExecDriver
                 int ret = super.execute(driverContext);

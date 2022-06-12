@@ -68,6 +68,7 @@ public class ColumnPruner extends Transform {
 
   /** todo_c 转换查询树。对于正在考虑的每个表，检查是否需要所有列。
    *            如果不是，则仅选择开始时需要的运算符并继续
+
    * Transform the query tree. For each table under consideration, check if all
    * columns are needed. If not, only select the operators needed at the
    * beginning and proceed.
@@ -84,7 +85,8 @@ public class ColumnPruner extends Transform {
 
     // create a walker which walks the tree in a DFS manner while maintaining
     // the operator stack. The dispatcher
-    // generates                                                                                                                                                                                                                                                                                                                                                                                  the plan from the operator tree
+
+    // generates the plan from the operator tree
     Map<Rule, NodeProcessor> opRules = new LinkedHashMap<Rule, NodeProcessor>();
     opRules.put(new RuleRegExp("R1",
       FilterOperator.getOperatorName() + "%"),
@@ -126,17 +128,20 @@ public class ColumnPruner extends Transform {
         UnionOperator.getOperatorName() + "%"),
         ColumnPrunerProcFactory.getUnionProc());
     //todo_c 调度程序触发与最接近的匹配规则对应的处理器并传递上下文
+
     // The dispatcher fires the processor corresponding to the closest matching
     // rule and passes the context along
     Dispatcher disp = new DefaultRuleDispatcher(ColumnPrunerProcFactory
         .getDefaultProc(), opRules, cppCtx);
     GraphWalker ogw = new ColumnPrunerWalker(disp);
     //todo_c 创建一个toppop节点列表
+
     // Create a list of topop nodes
     ArrayList<Node> topNodes = new ArrayList<Node>();
     topNodes.addAll(pGraphContext.getTopOps().values());
     ogw.startWalking(topNodes, null);
     //todo_c 将其设置回去，以便优化器中的列修剪器即使再次触发也不会再次进行视图列授权
+
     // set it back so that column pruner in the optimizer will not do the
     // view column authorization again even if it is triggered again.
     pGraphContext.setNeedViewColumnAuthorization(false);

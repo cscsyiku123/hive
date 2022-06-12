@@ -60,6 +60,7 @@ import com.google.common.collect.Lists;
  * Takes a Filter operator on top of a TableScan and removes dynamic pruning conditions
  * if static partition pruning has been triggered already.
  * todo_c 此转换在 CBO 开启时执行，因此我们可以保证分区列上的过滤条件将立即位于 TableScan 运算符之上。
+
  * This transformation is executed when CBO is on and hence we can guarantee that the filtering
  * conditions on the partition columns will be immediately on top of the TableScan operator.
  *

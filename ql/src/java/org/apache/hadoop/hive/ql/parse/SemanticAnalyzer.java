@@ -390,6 +390,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         autogenColAliasPrfxLbl = HiveConf.getVar(conf, HiveConf.ConfVars.HIVE_AUTOGEN_COLUMNALIAS_PREFIX_LABEL);
         autogenColAliasPrfxIncludeFuncName = HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_AUTOGEN_COLUMNALIAS_PREFIX_INCLUDEFUNCNAME);
         //todo_c 只是new了
+
         queryProperties = new QueryProperties();
         opToPartToSkewedPruner = new HashMap<TableScanOperator, Map<String, ExprNodeDesc>>();
         aliasToCTEs = new HashMap<String, CTEClause>();
@@ -1501,6 +1502,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
                         // For multi-insert query, currently we only optimize the FROM clause.
                         // todo_c 因此，在其之上引入多插入令牌。但是，首先我们需要重置现有令牌（插入）。
                         //  使用 qbp.getClauseNamesForDest().size() >= 2 是等价的，但是我们使用 == 来避免多次设置属性
+                        // For multi-insert query, currently we only optimize the FROM clause.
+
                         // Hence, introduce multi-insert token on top of it.
                         // However, first we need to reset existing token (insert).
                         // Using qbp.getClauseNamesForDest().size() >= 2 would be
@@ -1532,8 +1535,9 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
                         processTable(qb, newFrom);
                     } else if(frm.getToken().getType() == HiveParser.TOK_SUBQUERY) {
                         processSubQuery(qb, frm);
-                    } else if(frm.getToken().getType() == HiveParser.TOK_LATERAL_VIEW
-                              || frm.getToken().getType() == HiveParser.TOK_LATERAL_VIEW_OUTER) {
+
+                    } else if(frm.getToken().getType() == HiveParser.TOK_LATERAL_VIEW || frm.getToken()
+                            .getType() == HiveParser.TOK_LATERAL_VIEW_OUTER) {
                         queryProperties.setHasLateralViews(true);
                         processLateralView(qb, frm);
                     } else if(isJoinToken(frm)) {
@@ -1644,6 +1648,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
                 case HiveParser.TOK_UNIONALL:
                     if(!qbp.getIsSubQ()) {
                         //todo_c 这不应该发生。解析器应该已将联合转换为包含在子查询中。以防万一，我们将错误保留为后备。
+
                         // this shouldn't happen. The parser should have converted the union to be
                         // contained in a subquery. Just in case, we keep the error as a fallback.
                         throw new SemanticException(generateErrorMessage(ast, ErrorMsg.UNION_NOTIN_SUBQ.getMsg()));
@@ -1926,6 +1931,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
         /**
          *  todo_c CTE:Common Table Expression,指with子句中的临时结果集。 https://blog.csdn.net/qq_26532177/article/details/122058778
+
          * used to capture view to SQ conversions. This is used to check for recursive CTE invocations.
          */
         Map<String, String> sqAliasToCTEName = new HashMap<String, String>();
@@ -3103,6 +3109,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
                 RowResolver sqRR = opParseCtx.get(sqPlanTopOp).getRowResolver();
 
                 /* todo_c For In 和 Not In 子查询必须隐式或显式仅包含一个选择项。
+
                  * Check.5.h :: For In and Not In the SubQuery must implicitly or
                  * explicitly only contain one select item.
                  */
@@ -9607,6 +9614,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         // Must be deterministic order map - see HIVE-8707
         Map<String, Operator> aliasToOpInfo = new LinkedHashMap<String, Operator>();
         //todo_c 递归子查询以填充计划的子查询部分
+
         // Recurse over the subqueries to fill the subquery part of the plan
         for(String alias : qb.getSubqAliases()) {
             QBExpr qbexpr = qb.getSubqForAlias(alias);
@@ -9649,6 +9657,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
         if(queryProperties.hasPTF()) {
             //todo_c 处理子查询和源表后，处理分区表函数
+
             //After processing subqueries and source tables, process
             // partitioned table functions
 
@@ -9672,6 +9681,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
         }
         //todo_c 对于所有具有横向视图的源表，将适当的运算符附加到 TS
+
         // For all the source tables that have a lateral view, attach the
         // appropriate operators to the TS
         genLateralViewPlans(aliasToOpInfo, qb);
@@ -10191,6 +10201,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         // TODO_MA 22222 注释: 处理 create table 命令
         if(ast.getToken().getType() == HiveParser.TOK_CREATETABLE) {
             // todo_c 如果不是ctas，返回(CREATE table as )
+
             // if it is not CTAS, we don't need to go further and just return
             if((child = analyzeCreateTable(ast, qb, plannerCtx)) == null) {
                 return false;
@@ -10263,6 +10274,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     /**
      * todo_c 这将遍历 INSERT 语句的 AST 并组装位于 HDFS 加密区域中的目标表列表。
      *          这是为了确保 Insert ... select values(...) 的 values 子句中的数据安全存储
+
      * This will walk AST of an INSERT statement and assemble a list of target tables
      * which are in an HDFS encryption zone.  This is needed to make sure that so that
      * the data from values clause of Insert ... select values(...) is stored securely.
@@ -10375,6 +10387,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         // 1. Generate Resolved Parse tree from syntax tree
         LOG.info("Starting Semantic Analysis");
         //todo_c 在此处更改位置别名过程的位置
+
         //change the location of position alias process here
         processPositionAlias(ast);
         if(!genResolvedParseTree(ast, plannerCtx)) {
@@ -10388,6 +10401,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
          *  逻辑操作符，就是在 Map 阶段或者 Reduce 阶段完成单一特定的操作。
          */
         // 2. TODO_C Gen OP Tree from resolved Parse Tree
+
         Operator sinkOp = genOPTree(ast, plannerCtx);
 
         if(!unparseTranslator.isEnabled() && tableMask.isEnabled()) {
@@ -10542,6 +10556,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
          *  注释： 9999999 执行物理优化，并 生成最终物理执行计划  OperatorTree  ====> TaskTree
          */
         //todo_c 优化物理操作树并转换为目标执行引擎（MR、TEZ..）
+
         // 9. Optimize Physical op tree & Translate to target execution engine (MR, TEZ..)
         if(!ctx.getExplainLogical()) {
             // 这里的TaskCompiler根据引擎不同可以是MR, Tez, Spark, TaskCompilerFactory的实现

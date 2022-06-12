@@ -122,6 +122,7 @@ public class DefaultGraphWalker implements GraphWalker {
       //todo_c 一些扩展 DefaultGraphWalker 的步行者，例如ForwardWalker
       // 不使用 opQueue 并且唯一依赖于 toWalk 结构，因此我们将 dispatcher 产生的结果存储在这里
       // TODO: 重写这些 walkers 的逻辑以使用 opQueue
+
       // Some walkers extending DefaultGraphWalker e.g. ForwardWalker
       // do not use opQueue and rely uniquely in the toWalk structure,
       // thus we store the results produced by the dispatcher here
@@ -169,6 +170,7 @@ public class DefaultGraphWalker implements GraphWalker {
         continue;
       }
       // todo_c 加一个孩子，就是dfs 深度遍历
+
       // Add a single child and restart the loop
       for (Node childNode : node.getChildren()) {
         if (!getDispatchedList().contains(childNode)) {

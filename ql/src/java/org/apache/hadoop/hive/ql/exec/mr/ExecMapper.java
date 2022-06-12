@@ -46,6 +46,12 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.StringUtils;
 
 /**
+/** todo_c
+ * ExecMapper 是 Hive 的通用 Map 类。与 ExecReducer 一起，
+ * 它是执行时 map-reduce 框架和 Hive 操作员管道之间的桥梁。
+ * 它的主要职责是： - 从 XML 加载和设置操作员管道 - 通
+ * 过将键值对转换为记录并将它们转发给操作员来运行管道 -
+ * 达到“限制”时停止执行 - 在执行期间捕获并处理错误运营商。
  * ExecMapper is the generic Map class for Hive. Together with ExecReducer it is
  * the bridge between the map-reduce framework and the Hive operator pipeline at
  * execution time. It's main responsibilities are:

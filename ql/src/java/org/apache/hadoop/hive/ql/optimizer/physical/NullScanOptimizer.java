@@ -43,6 +43,9 @@ import org.apache.hadoop.hive.ql.plan.ExprNodeConstantDesc;
 import org.apache.hadoop.hive.ql.plan.ExprNodeDesc;
 
 /**
+/** todo_c 此优化器尝试进行以下两种优化：
+ *        1. 如果它发现 TS 后跟 FIL（在编译时已确定评估为零），它会删除该表扫描的所有输入路径。
+ *        2. 如果发现 TS 后跟 Limit 0，则从表扫描中删除所有输入路径。
  * This optimizer attempts following two optimizations:
  * 1. If it finds TS followed By FIL which has been determined at compile time to evaluate to
  *    zero, it removes all input paths for that table scan.

@@ -27,6 +27,7 @@ import org.apache.hadoop.hive.ql.session.SessionState;
  *      优化接口
  *      所有基于规则的优化都实现了这个接口。所有的转换都是按顺序调用的。
  *      它们获取当前的解析上下文（其中包含运算符树等），执行所有优化，然后返回更新的解析上下文。
+
  * Optimizer interface.
  * All the rule-based optimizations implement this interface.
  * All the transformations are invoked sequentially.

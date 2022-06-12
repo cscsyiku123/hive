@@ -160,6 +160,7 @@ public class QueryPlan implements Serializable {
     }
 
     /**
+    /** todo_c 根据与该任务对应的算子为给定任务生成算子图和算子列表。
      * generate the operator graph and operator list for the given task based on
      * the operators corresponding to that task.
      *

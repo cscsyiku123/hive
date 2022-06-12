@@ -78,10 +78,12 @@ public final class GenMRSkewJoinProcessor {
    * <p>
    * <ul>
    * <li>
+   * //todo_c 处理倾斜键的 mr 作业数是表数减 1（我们可以流式传输最后一个表，因此最后一个表中的大键不会成为问题）。
    * Number of mr jobs to handle skew keys is the number of table minus 1 (we
    * can stream the last table, so big keys in the last table will not be a
    * problem).
    * <li>
+   *     //todo_c 在 Join 运行时，我们将一张表中的大键输出到一个对应的目录中，并将其他表中所有相同的键输出到不同的目录中（每个表一个）。目录看起来像
    * At runtime in Join, we output big keys in one table into one corresponding
    * directories, and all same keys in other tables into different dirs(one for
    * each table). The directories will look like:
@@ -97,6 +99,7 @@ public final class GenMRSkewJoinProcessor {
    * keys in T3),dir-T3-bigkeys(containing keys which is big in T3), ... .....
    * </ul>
    * </ul>
+   * //todo_c 对于每个表，我们启动一个 mapjoin 作业，将该表中包含大键的目录和其他表中的相应目录作为输入。 （实际上是上面一行的一份工作。）
    * For each table, we launch one mapjoin job, taking the directory containing
    * big keys in this table and corresponding dirs in other tables as input.
    * (Actally one job for one row in the above.)
@@ -110,7 +113,7 @@ public final class GenMRSkewJoinProcessor {
   public static void processSkewJoin(JoinOperator joinOp,
       Task<? extends Serializable> currTask, ParseContext parseCtx)
       throws SemanticException {
-
+    //todo_c 添加map join来解决倾斜，但不适用outer join
     // We are trying to adding map joins to handle skew keys, and map join right
     // now does not work with outer joins
     if (!GenMRSkewJoinProcessor.skewJoinEnabled(parseCtx.getConf(), joinOp)) {
@@ -131,14 +134,19 @@ public final class GenMRSkewJoinProcessor {
     Byte[] tags = joinDescriptor.getTagOrder();
     for (int i = 0; i < numAliases; i++) {
       Byte alias = tags[i];
+
+      //todo_c 构建big key的存储目录
       bigKeysDirMap.put(alias, getBigKeysDir(baseTmpDir, alias));
       Map<Byte, Path> smallKeysMap = new HashMap<Byte, Path>();
+      //todo_c 构建smalle key的存储目录
       smallKeysDirMap.put(alias, smallKeysMap);
       for (Byte src2 : tags) {
         if (!src2.equals(alias)) {
           smallKeysMap.put(src2, getSmallKeysDir(baseTmpDir, alias, src2));
         }
       }
+      //todo_c skew join的结果输出目录
+
       skewJoinJobResultsDir.put(alias, getBigKeysSkewJoinResultDir(baseTmpDir,
           alias));
     }
@@ -152,6 +160,7 @@ public final class GenMRSkewJoinProcessor {
     HashMap<Path, Task<? extends Serializable>> bigKeysDirToTaskMap =
       new HashMap<Path, Task<? extends Serializable>>();
     List<Serializable> listWorks = new ArrayList<Serializable>();
+    //todo_c 新生成的任务和旧任务都放到这
     List<Task<? extends Serializable>> listTasks = new ArrayList<Task<? extends Serializable>>();
     MapredWork currPlan = (MapredWork) currTask.getWork();
 
@@ -178,7 +187,10 @@ public final class GenMRSkewJoinProcessor {
       String colNames = "";
       String colTypes = "";
       int columnSize = valueCols.size();
+
+      //
       List<ExprNodeDesc> newValueExpr = new ArrayList<ExprNodeDesc>();
+      //todo_c 倾斜key
       List<ExprNodeDesc> newKeyExpr = new ArrayList<ExprNodeDesc>();
       ArrayList<ColumnInfo> columnInfos = new ArrayList<ColumnInfo>();
 
@@ -305,9 +317,11 @@ public final class GenMRSkewJoinProcessor {
 
       newPlan.setMapRedLocalWork(localPlan);
 
+    //todo_c 构造一个 map join 并将其设置为 tblScan_op 的子运算符
       // construct a map join and set it as the child operator of tblScan_op
       MapJoinOperator mapJoinOp = (MapJoinOperator) OperatorFactory.getAndMakeChild(
           joinOp.getCompilationOpContext(), mapJoinDescriptor, (RowSchema) null, parentOps);
+      //todo_c 将原始连接运算符的子节点更改为指向map连接运算符
       // change the children of the original join operator to point to the map
       // join operator
       List<Operator<? extends OperatorDesc>> childOps = cloneJoinOp
@@ -336,13 +350,19 @@ public final class GenMRSkewJoinProcessor {
       listWorks.add(skewJoinMapJoinTask.getWork());
       listTasks.add(skewJoinMapJoinTask);
     }
+
+    //todo_c  添加旧任务依赖
     if (children != null) {
       for (Task<? extends Serializable> tsk : listTasks) {
         for (Task<? extends Serializable> oldChild : children) {
           tsk.addDependentTask(oldChild);
         }
       }
+
+      //todo_c 删除当前任务的所有孩子任务
       currTask.setChildTasks(new ArrayList<Task<? extends Serializable>>());
+      //todo_c 孩子任务也删除对应的付任务依赖
+
       for (Task<? extends Serializable> oldChild : children) {
         oldChild.getParentTasks().remove(currTask);
       }
@@ -359,6 +379,7 @@ public final class GenMRSkewJoinProcessor {
     currTask.setChildTasks(new ArrayList<Task<? extends Serializable>>());
     currTask.addDependentTask(cndTsk);
 
+    System.out.println("倾斜链接了");
     return;
   }
 
@@ -368,10 +389,11 @@ public final class GenMRSkewJoinProcessor {
       return false;
     }
 
+//todo_c  外链接返回false
     if (!joinOp.getConf().isNoOuterJoin()) {
       return false;
     }
-
+  //todo_c  join的时候表的顺序
     byte pos = 0;
     for (Byte tag : joinOp.getConf().getTagOrder()) {
       if (tag != pos) {

@@ -116,6 +116,7 @@ public class FieldNode {
   }
 
   /** todo_c 合并字段节点 'left' 和 'right' 并返回合并的节点。如果两个节点不能合并，则返回 null
+
    * Merge the field nodes 'left' and 'right' and return the merged node.
    * Return null if the two nodes cannot be merged.
    *

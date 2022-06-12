@@ -60,6 +60,9 @@ import org.apache.hadoop.hive.ql.plan.MapredWork;
 import org.apache.hadoop.hive.ql.plan.OperatorDesc;
 
 /**
+ * todo_c PhysicalPlanResolver 的实现。它迭代每个 MapRedTask 以查看任务是否有local map工作，
+ *        如果有，它将把local工作移动到新的local map join 任务。
+ *        然后它将使这个新生成的任务依赖于当前任务的父任务，并使当前任务依赖于这个新生成的任务。
  * An implementation of PhysicalPlanResolver. It iterator each MapRedTask to see whether the task
  * has a local map work if it has, it will move the local work to a new local map join task. Then it
  * will make this new generated task depends on current task's parent task and make current task

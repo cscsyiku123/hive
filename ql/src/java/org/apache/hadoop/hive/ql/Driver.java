@@ -381,6 +381,7 @@ public class Driver implements CommandProcessor {
      */
     public int compile(String command, boolean resetTaskIds, boolean deferClose) {
         //todo_c resetTaskIds=true deferClose=true
+
         PerfLogger perfLogger = SessionState.getPerfLogger(true);
         perfLogger.PerfLogBegin(CLASS_NAME, PerfLogger.DRIVER_RUN);
         perfLogger.PerfLogBegin(CLASS_NAME, PerfLogger.COMPILE);
@@ -391,6 +392,7 @@ public class Driver implements CommandProcessor {
             lDrvState.stateLock.unlock();
         }
         //todo_c 变量替换
+
         command = new VariableSubstitution(new HiveVariableSource() {
             @Override
             public Map<String, String> getHiveVariable() {
@@ -528,6 +530,7 @@ public class Driver implements CommandProcessor {
                 sem.analyze(tree, ctx);
             }
             //todo_c 记录我们看到的任何符合 ACID 的 FileSinkOperators，以便我们以后可以将我们的事务 ID 添加到它们
+
             // Record any ACID compliant FileSinkOperators we saw so we can add our transaction ID to them later.
             acidSinks = sem.getAcidFileSinks();
 
@@ -617,6 +620,7 @@ public class Driver implements CommandProcessor {
             console.printError(errorMessage, "\n" + org.apache.hadoop.util.StringUtils.stringifyException(e));
             return error.getErrorCode();//todo: this is bad if returned as cmd shell exit
             //todo_c 因为它超出了 shell 返回值的有效范围
+
             // since it exceeds valid range of shell return values
         } finally {
             // Trigger post compilation hook. Note that if the compilation fails here then
@@ -1295,6 +1299,7 @@ public class Driver implements CommandProcessor {
         int ret;
         //todo_c deferClose=true
 
+
         Metrics metrics = MetricsFactory.getInstance();
         if(metrics != null) {
             metrics.incrementCounter(MetricsConstant.WAITING_COMPILE_OPS, 1);
@@ -1412,6 +1417,7 @@ public class Driver implements CommandProcessor {
      */
     private CommandProcessorResponse runInternal(String command, boolean alreadyCompiled) throws CommandNeedRetryException {
         //TODO_C alreadyCompiled=FALSE
+
         errorMessage = null;
         SQLState = null;
         downstreamError = null;
@@ -1432,12 +1438,14 @@ public class Driver implements CommandProcessor {
             lDrvState.stateLock.unlock();
         }
         //todo_c 一个标志，通过跟踪方法是否被错误返回来帮助在 finally 块中设置正确的驱动程序状态。
+
         // a flag that helps to set the correct driver state in finally block by tracking if
         // the method has been returned by an error or not.
         boolean isFinishedWithError = true;
         try {
             HiveDriverRunHookContext hookContext = new HiveDriverRunHookContextImpl(conf, alreadyCompiled ? ctx.getCmd() : command);
             //todo_c 获取所有驱动程序运行挂钩并预先执行它们
+
             // Get all the driver run hooks and pre-execute them.
             List<HiveDriverRunHook> driverRunHooks;
             try {
@@ -1857,6 +1865,7 @@ public class Driver implements CommandProcessor {
 
             perfLogger.PerfLogBegin(CLASS_NAME, PerfLogger.RUN_TASKS);
 
+            //todo_c 在您有任务运行或任务排队时循环
             // Loop while you either have tasks running, or tasks queued up
             while(driverCxt.isRunning()) {
 
@@ -1879,6 +1888,7 @@ public class Driver implements CommandProcessor {
                     }
                 }
 
+                //todo_c 轮询任务以查看完成的任务
                 // poll the Tasks to see which one completed
                 TaskRunner tskRun = driverCxt.pollFinished();
                 if(tskRun == null) {
@@ -1897,6 +1907,7 @@ public class Driver implements CommandProcessor {
                 if(exitVal != 0) {
                     if(tsk.ifRetryCmdWhenFail()) {
                         driverCxt.shutdown();
+                        //todo_c 如果我们决定在本地模式下运行所有内容，请将 jobtracker 设置恢复为其初始值
                         // in case we decided to run everything in local mode, restore the
                         // the jobtracker setting to its initial value
                         ctx.restoreOriginalTracker();
@@ -1922,6 +1933,7 @@ public class Driver implements CommandProcessor {
                         SQLState = "08S01";
                         console.printError(errorMessage);
                         driverCxt.shutdown();
+                        //todo_c 如果我们决定在本地模式下运行所有内容，请将 jobtracker 设置恢复为其初始值
                         // in case we decided to run everything in local mode, restore the
                         // the jobtracker setting to its initial value
                         ctx.restoreOriginalTracker();
@@ -2214,6 +2226,7 @@ public class Driver implements CommandProcessor {
         cxt.launching(tskRun);
 
         // TODO_MA 注释：如果是并行运行。默认是 False
+        // TODO_MA 注释：如果是并行运行。默认是 False . hive.exec.parallel
         // Launch Task
         if(HiveConf.getBoolVar(conf, HiveConf.ConfVars.EXECPARALLEL) && tsk.isMapRedTask()) {
             // Launch it in the parallel mode, as a separate thread only for MR tasks

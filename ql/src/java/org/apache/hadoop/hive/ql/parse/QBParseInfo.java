@@ -35,6 +35,7 @@ import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer.AnalyzeRewriteContex
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer.TableSpec;
 
 /** todo_c 与查询块相关的解析信息的实现
+
  * Implementation of the parse information related to a query block.
  *
  **/

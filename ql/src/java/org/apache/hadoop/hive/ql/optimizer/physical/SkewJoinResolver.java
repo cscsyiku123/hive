@@ -40,7 +40,9 @@ import org.apache.hadoop.hive.ql.parse.ParseContext;
 import org.apache.hadoop.hive.ql.parse.SemanticException;
 import org.apache.hadoop.hive.ql.plan.MapredWork;
 
-/**
+
+/** todo_c PhysicalPlanResolver 的实现。它使用规则调度器为其reducer operator 树迭代每个任务，
+ *        对于reducer 中具有join op 的任务，它将尝试添加一个与skew join 任务列表相关联的条件任务
  * An implementation of PhysicalPlanResolver. It iterator each task with a rule
  * dispatcher for its reducer operator tree, for task with join op in reducer,
  * it will try to add a conditional task associated a list of skew join tasks.
@@ -72,7 +74,8 @@ public class SkewJoinResolver implements PhysicalPlanResolver {
     public Object dispatch(Node nd, Stack<Node> stack, Object... nodeOutputs)
         throws SemanticException {
       Task<? extends Serializable> task = (Task<? extends Serializable>) nd;
-      //todo_c
+
+
       if (!task.isMapRedTask() || task instanceof ConditionalTask
           || ((MapredWork) task.getWork()).getReduceWork() == null) {
         return null;
@@ -84,6 +87,8 @@ public class SkewJoinResolver implements PhysicalPlanResolver {
       Map<Rule, NodeProcessor> opRules = new LinkedHashMap<Rule, NodeProcessor>();
       opRules.put(new RuleRegExp("R1",
         CommonJoinOperator.getOperatorName() + "%"),
+
+        //todo_c 获取skewjoinprocess
         SkewJoinProcFactory.getJoinProc());
       //todo_c 调度程序触发与最接近的匹配规则对应的处理器并传递上下文
       // The dispatcher fires the processor corresponding to the closest
@@ -92,6 +97,7 @@ public class SkewJoinResolver implements PhysicalPlanResolver {
           .getDefaultProc(), opRules, skewJoinProcContext);
       GraphWalker ogw = new DefaultGraphWalker(disp);
       //todo_c 迭代reducer运算符树
+
       // iterator the reducer operator tree
       ArrayList<Node> topNodes = new ArrayList<Node>();
       if (((MapredWork)task.getWork()).getReduceWork() != null) {

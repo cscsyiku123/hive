@@ -72,6 +72,7 @@ public class Optimizer {
         // we are translating Calcite operators into Hive operators.
         transformations.add(new HiveOpConverterPostProc());
         //todo_c 添加计算血缘信息的转换
+
         // Add the transformation that computes the lineage information.
         Set<String> postExecHooks = Sets.newHashSet(Splitter.on(",").trimResults().omitEmptyStrings()
                 .split(Strings.nullToEmpty(HiveConf.getVar(hiveConf, HiveConf.ConfVars.POSTEXECHOOKS))));
@@ -87,6 +88,7 @@ public class Optimizer {
             transformations.add(new PointLookupOptimizer(min));
         }
         //todo_c 从in中提取分区列
+
         if(HiveConf.getBoolVar(hiveConf, HiveConf.ConfVars.HIVEPARTITIONCOLUMNSEPARATOR)) {
             transformations.add(new PartitionColumnsSeparator());
         }
@@ -109,6 +111,7 @@ public class Optimizer {
         //todo_c 我们运行了两次常量传播，因为在谓词下推之后，过滤器表达式被组合并且可能有资格减少（比如不是空过滤器
         if(HiveConf.getBoolVar(hiveConf, HiveConf.ConfVars.HIVEOPTCONSTANTPROPAGATION) && !pctx.getContext().isCboSucceeded()) {
             // We run constant propagat                                                       ion twice because after predicate pushdown, filter expressions
+
             // are combined and may become eligible for reduction (like is not null filter).
             transformations.add(new ConstantPropagate());
         }
@@ -207,6 +210,7 @@ public class Optimizer {
             transformations.add(new GlobalLimitOptimizer());
         }
         //todo_c 相关优化， 如对相同的keyj进行shuffle就可以合并到一块。合并那些被多少mapreduce 使用的输入表。
+
         if(HiveConf.getBoolVar(hiveConf, HiveConf.ConfVars.HIVEOPTCORRELATION) && !HiveConf
                 .getBoolVar(hiveConf, HiveConf.ConfVars.HIVEGROUPBYSKEW) && !HiveConf
                 .getBoolVar(hiveConf, HiveConf.ConfVars.HIVE_OPTIMIZE_SKEWJOIN_COMPILETIME) && !isTezExecEngine) {

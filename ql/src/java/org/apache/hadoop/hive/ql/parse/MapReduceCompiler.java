@@ -249,6 +249,7 @@ public class MapReduceCompiler extends TaskCompiler {
     @Override
     protected void optimizeTaskPlan(List<Task<? extends Serializable>> rootTasks, ParseContext pCtx, Context ctx) throws SemanticException {
         //todo_c 当遍历完node和operator，计划已经分解成多个任务，所以reduce sink 没有任何孩子
+
         // reduce sink does not have any kids - since the plan by now has been
         // broken up into multiple
         // tasks, iterate over all tasks.
@@ -275,6 +276,7 @@ public class MapReduceCompiler extends TaskCompiler {
                 new LinkedHashMap<Operator<? extends OperatorDesc>, Task<? extends Serializable>>(), tempParseContext, mvTask, rootTasks,
                 new LinkedHashMap<Operator<? extends OperatorDesc>, GenMapRedCtx>(), inputs, outputs);
         //todo_c dfs 的同时保持operator tree,然后分发ot生成计划
+
         // create a walker which walks the tree in a DFS manner while maintaining
         // the operator stack.
         // The dispatcher generates the plan from the operator tree

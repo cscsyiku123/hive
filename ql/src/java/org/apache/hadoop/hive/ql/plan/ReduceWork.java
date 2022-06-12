@@ -44,10 +44,11 @@ import org.apache.hive.common.util.ReflectionUtil;
 
 /**
  * todo_c ReduceWork 表示用于在集群上运行 reduce 任务的所有信息。
-       * 它首先用于查询计划器将逻辑计划分解为任务并在整个物理优化过程中用于跟踪 reduce-side
-       * 运算符计划、有关键值对的模式信息等 ExecDriver 将序列化此类的内容并确保它分布在集群。
-       * ExecReducer 最终将在数据节点上反序列化此类并相应地设置它的操作 pipline。
-       * 这个类也用在explain命令中，任何带有适当注释的属性都将显示在解释输出中。
+ * 它首先用于查询计划器将逻辑计划分解为任务并在整个物理优化过程中用于跟踪 reduce-side 运算符计划、
+ * 有关键值对的模式信息等
+ * ExecDriver 将序列化此类的内容并确保它分布在集群上。
+ * ExecReducer 最终将在数据节点上反序列化此类并相应地设置它的操作员管道。
+ * 这个类也用在解释命令中，任何带有适当注释的属性都将显示在解释输出中
  * ReduceWork represents all the information used to run a reduce task on the cluster.
  * It is first used when the query planner breaks the logical plan into tasks and
  * used throughout physical optimization to track reduce-side operator plans, schema

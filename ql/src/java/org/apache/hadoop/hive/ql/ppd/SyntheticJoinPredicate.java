@@ -58,6 +58,7 @@ import org.apache.hadoop.hive.ql.plan.JoinDesc;
 import org.apache.hadoop.hive.ql.plan.OperatorDesc;
 
 /** todo_c 创建表示“IN (keylist other table)”的合成谓词
+
  * creates synthetic predicates that represent "IN (keylist other table)"
  */
 public class SyntheticJoinPredicate extends Transform {

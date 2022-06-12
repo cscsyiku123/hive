@@ -104,6 +104,7 @@ public final class ColumnPrunerProcFactory {
         Object... nodeOutputs) throws SemanticException {
       // todo_c stack没用
       //todo_c nodeOutputs
+
       FilterOperator op = (FilterOperator) nd;
       ColumnPrunerProcCtx cppCtx = (ColumnPrunerProcCtx) ctx;
       ExprNodeDesc condn = op.getConf().getPredicate();

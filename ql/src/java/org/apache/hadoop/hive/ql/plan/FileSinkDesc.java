@@ -76,6 +76,7 @@ public class FileSinkDesc extends AbstractOperatorDesc {
   // 例如：考虑如下查询： select from (subq1 union all subq2)x;其中 subq1 或 subq2 涉及 map-reduce 作业。
   // 它分为两个独立的查询，直接涉及 subq1 和 subq2，子查询写入公共目录的子目录。
   // 因此，subq1 和 subq2 的文件接收器描述符是链接的。
+
   // This file descriptor is linked to other file descriptors.
   // One use case is that, a union->select (star)->file sink, is broken down.
   // For eg: consider a query like:
